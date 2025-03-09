@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Juego Educativo de Plataformas - Programación</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            overflow: hidden;
+            border: 4px solid #222;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        #game-canvas {
+            background-color: #87CEEB;
+        }
+        
+        #controls {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+        }
+        
+        #score-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 10;
+        }
+
+        #question-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 550px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            display: none;
+        }
+
+        #question-text {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .answer-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .answer-btn:hover {
+            background-color: #45a049;
+        }
+
+        #result-message {
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+            height: 24px;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        #progress-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 16px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 10;
+        }
+        
+        #timer-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 6px;
+            width: 100%;
+            background-color: #4CAF50;
+            transition: width 0.1s linear;
+        }
+        
+        #difficulty-selector {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            z-index: 200;
+        }
+        
+        .difficulty-btn {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .difficulty-btn:hover {
+            background-color: #45a049;
+        }
+        
+        #level-display {
+            position: absolute;
+            top: 40px;
+            left: 10px;
+            color: white;
+            font-size: 18px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 10;
+        }
+        
+        #level-complete {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            z-index: 150;
+            display: none;
+        }
+        
+        #next-level-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .question-category {
+            font-weight: bold;
+            color: #FF5722;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        code {
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="score-display">Puntos: 0</div>
+        <div id="level-display">Nivel: 1</div>
+        <div id="progress-display">Preguntas: 0/6</div>
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+        <div id="controls">
+            ← → para moverse | ↑ para saltar | P para pausar
+        </div>
+
+        <div id="question-modal">
+            <div class="question-category">Categoría: Programación</div>
+            <div id="question-text">¿Pregunta?</div>
+            <div id="answer-buttons">
+                <button class="answer-btn" data-index="0">Respuesta 1</button>
+                <button class="answer-btn" data-index="1">Respuesta 2</button>
+                <button class="answer-btn" data-index="2">Respuesta 3</button>
+                <button class="answer-btn" data-index="3">Respuesta 4</button>
+            </div>
+            <div id="result-message"></div>
+            <div id="timer-bar"></div>
+        </div>
+        
+        <div id="difficulty-selector">
+            <h2>Selecciona la Dificultad</h2>
+            <button class="difficulty-btn" data-difficulty="facil">Fácil</button>
+            <button class="difficulty-btn" data-difficulty="medio">Medio</button>
+            <button class="difficulty-btn" data-difficulty="dificil">Difícil</button>
+        </div>
+        
+        <div id="level-complete">
+            <h2>¡Nivel Completado!</h2>
+            <p>Puntuación del nivel: <span id="level-score">0</span></p>
+            <p>Preguntas correctas: <span id="level-questions">0/6</span></p>
+            <button id="next-level-btn">Siguiente Nivel</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuración del juego
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score-display');
+        const levelDisplay = document.getElementById('level-display');
+        const progressDisplay = document.getElementById('progress-display');
+        const questionModal = document.getElementById('question-modal');
+        const questionText = document.getElementById('question-text');
+        const answerButtons = document.querySelectorAll('.answer-btn');
+        const resultMessage = document.getElementById('result-message');
+        const timerBar = document.getElementById('timer-bar');
+        const difficultySelector = document.getElementById('difficulty-selector');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        const levelComplete = document.getElementById('level-complete');
+        const levelScore = document.getElementById('level-score');
+        const levelQuestions = document.getElementById('level-questions');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        
+        // Variables del juego
+        let score = 0;
+        let correctAnswers = 0;
+        let gameOver = false;
+        let isPaused = false;
+        let isQuestionActive = false;
+        let currentCoinIndex = -1;
+        let difficulty = "medio"; // Por defecto
+        let currentLevel = 1;
+        let maxLevel = 3;
+        let questionTimer;
+        let timeLeft;
+        let timeLimits = {
+            "facil": 30,
+            "medio": 20,
+            "dificil": 15
+        };
+        
+        // Jugador
+        const player = {
+            x: 100,
+            y: 400,
+            width: 32,
+            height: 48,
+            velocityX: 0,
+            velocityY: 0,
+            speed: 5,
+            jumpForce: 15,
+            gravity: 0.8,
+            isJumping: false,
+            frameX: 0,
+            frameY: 0,
+            frameCount: 4,
+            animationSpeed: 5,
+            animationCounter: 0,
+            facingRight: true
+        };
+        
+        // Plataformas para los diferentes niveles
+        const levelPlatforms = {
+            1: [
+                // Suelo principal
+                [0, 550, 800, 50, '#8B5A2B'],
+                // Plataformas flotantes
+                [150, 450, 100, 20, '#8B5A2B'],
+                [300, 380, 150, 20, '#8B5A2B'],
+                [500, 300, 100, 20, '#8B5A2B'],
+                [700, 250, 100, 20, '#8B5A2B'],
+                [200, 180, 100, 20, '#8B5A2B'],
+                [400, 150, 200, 20, '#8B5A2B']
+            ],
+            2: [
+                // Suelo principal dividido
+                [0, 550, 300, 50, '#8B5A2B'],
+                [400, 550, 400, 50, '#8B5A2B'],
+                // Plataformas flotantes
+                [100, 450, 80, 20, '#8B5A2B'],
+                [250, 370, 100, 20, '#8B5A2B'],
+                [400, 300, 120, 20, '#8B5A2B'],
+                [600, 250, 80, 20, '#8B5A2B'],
+                [500, 180, 100, 20, '#8B5A2B'],
+                [300, 120, 120, 20, '#8B5A2B'],
+                [150, 200, 80, 20, '#8B5A2B']
+            ],
+            3: [
+                // Plataformas dispersas
+                [0, 550, 200, 50, '#8B5A2B'],
+                [250, 500, 100, 20, '#8B5A2B'],
+                [400, 450, 80, 20, '#8B5A2B'],
+                [600, 500, 200, 50, '#8B5A2B'],
+                [150, 400, 70, 20, '#8B5A2B'],
+                [300, 350, 70, 20, '#8B5A2B'],
+                [450, 300, 70, 20, '#8B5A2B'],
+                [600, 350, 70, 20, '#8B5A2B'],
+                [200, 250, 70, 20, '#8B5A2B'],
+                [350, 200, 100, 20, '#8B5A2B'],
+                [550, 200, 70, 20, '#8B5A2B'],
+                [700, 150, 100, 20, '#8B5A2B']
+            ]
+        };
+        
+        // Monedas para los diferentes niveles
+        const levelCoins = {
+            1: [
+                [180, 420, false, false],
+                [320, 350, false, false],
+                [550, 270, false, false],
+                [750, 220, false, false],
+                [250, 150, false, false],
+                [500, 120, false, false]
+            ],
+            2: [
+                [130, 420, false, false],
+                [270, 340, false, false],
+                [450, 270, false, false],
+                [630, 220, false, false],
+                [530, 150, false, false],
+                [350, 90, false, false],
+                [180, 170, false, false]
+            ],
+            3: [
+                [100, 520, false, false],
+                [290, 470, false, false],
+                [430, 420, false, false],
+                [170, 370, false, false],
+                [320, 320, false, false],
+                [470, 270, false, false],
+                [620, 320, false, false],
+                [230, 220, false, false],
+                [400, 170, false, false],
+                [720, 120, false, false]
+            ]
+        };
+        
+        // Enemigos para los diferentes niveles
+        const levelEnemies = {
+            1: [
+                [400, 532, 32, 18, 2, 1],
+                [350, 362, 32, 18, 1, 1],
+                [450, 132, 32, 18, 3, 1]
+            ],
+            2: [
+                [450, 532, 32, 18, 3, 1],
+                [280, 352, 32, 18, 2, 1],
+                [430, 282, 32, 18, 2, 1],
+                [530, 162, 32, 18, 1, 1],
+                [320, 102, 32, 18, 2, 1]
+            ],
+            3: [
+                [100, 532, 32, 18, 3, 1],
+                [650, 482, 32, 18, 2, 1],
+                [270, 332, 32, 18, 2, 1],
+                [480, 282, 32, 18, 3, 1],
+                [620, 332, 32, 18, 1, 1],
+                [380, 182, 32, 18, 2, 1],
+                [720, 132, 32, 18, 3, 1]
+            ]
+        };
+        
+        // Variables actuales
+        let platforms = [];
+        let coins = [];
+        let enemies = [];
+        
+        // Base de preguntas para el juego educativo
+        const allQuestions = {
+            "facil": [
+                {
+                    category: "Variables y Tipos",
+                    question: "¿Qué muestra el siguiente código?\n\nvar x = 5;\nconsole.log(x + 3);",
+                    answers: ["5", "8", "53", "Error"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Operadores",
+                    question: "¿Cuál es el resultado de 7 % 3?",
+                    answers: ["1", "2", "3", "4"],
+                    correctIndex: 0
+                },
+                {
+                    category: "Estructuras de Control",
+                    question: "¿Qué estructura se utiliza para repetir un bloque de código?",
+                    answers: ["if-else", "switch", "for", "try-catch"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Python Básico",
+                    question: "¿Cómo se declara una variable en Python?",
+                    answers: ["var x = 10;", "let x = 10;", "x = 10", "variable x = 10;"],
+                    correctIndex: 2
+                },
+                {
+                    category: "HTML Básico",
+                    question: "¿Qué etiqueta se usa para crear un hipervínculo?",
+                    answers: ["<link>", "<a>", "<href>", "<url>"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Lógica de Programación",
+                    question: "¿Qué es un algoritmo?",
+                    answers: ["Un lenguaje de programación", "Un conjunto ordenado de instrucciones", "Una base de datos", "Un dispositivo de entrada"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Variables y Tipos",
+                    question: "¿Qué tipo de dato es '42' en JavaScript?",
+                    answers: ["Número", "Booleano", "Cadena de texto", "Undefined"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Funciones",
+                    question: "¿Cómo se define una función en JavaScript?",
+                    answers: ["def myFunction()", "function myFunction()", "function = myFunction()", "func myFunction()"],
+                    correctIndex: 1
+                },
+                {
+                    category: "CSS Básico",
+                    question: "¿Qué propiedad CSS cambia el color del texto?",
+                    answers: ["text-color", "font-color", "color", "text-style"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Estructuras de Datos",
+                    question: "¿Cuál de estas estructuras almacena datos en forma de clave-valor?",
+                    answers: ["Array", "Objeto", "Variable", "String"],
+                    correctIndex: 1
+                }
+            ],
+            "medio": [
+                {
+                    category: "Funciones",
+                    question: "¿Qué devolverá esta función?\n\nfunction test() {\n  let x = 10;\n  return x * 2;\n}",
+                    answers: ["10", "20", "undefined", "Error"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Estructuras de Control",
+                    question: "¿Cuál es la salida del siguiente código?\n\nlet i = 0;\nwhile (i < 3) {\n  console.log(i);\n  i++;\n}",
+                    answers: ["0, 1, 2", "1, 2, 3", "0, 1, 2, 3", "Error de sintaxis"],
+                    correctIndex: 0
+                },
+                {
+                    category: "Arrays",
+                    question: "¿Cómo se accede al segundo elemento de un array en JavaScript?",
+                    answers: ["array[0]", "array[1]", "array[2]", "array.2"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Python",
+                    question: "¿Qué método se usa para añadir un elemento al final de una lista en Python?",
+                    answers: [".add()", ".push()", ".append()", ".insert()"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Algoritmos",
+                    question: "¿Cuál es la complejidad temporal de una búsqueda binaria?",
+                    answers: ["O(1)", "O(n)", "O(log n)", "O(n²)"],
+                    correctIndex: 2
+                },
+                {
+                    category: "DOM",
+                    question: "¿Qué método selecciona un elemento por su ID en JavaScript?",
+                    answers: ["document.querySelector()", "document.getElement()", "document.getElementById()", "document.findElement()"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Objetos",
+                    question: "¿Cómo se accede a la propiedad 'nombre' del objeto 'persona'?",
+                    answers: ["persona[nombre]", "persona.nombre", "persona->nombre", "persona::nombre"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Bucles",
+                    question: "¿Qué bucle ejecuta el código al menos una vez?",
+                    answers: ["for", "while", "do-while", "foreach"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Programación Orientada a Objetos",
+                    question: "¿Qué es una clase en programación?",
+                    answers: ["Una función", "Una plantilla para crear objetos", "Un tipo de variable", "Un método especial"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Operadores",
+                    question: "¿Qué muestra este código?\n\nlet a = '5';\nlet b = 2;\nconsole.log(a + b);",
+                    answers: ["7", "52", "'52'", "Error"],
+                    correctIndex: 2
+                }
+            ],
+            "dificil": [
+                {
+                    category: "Funciones Avanzadas",
+                    question: "¿Qué es una función de orden superior?",
+                    answers: ["Una función que toma mucho tiempo en ejecutarse", "Una función que usa variables globales", "Una función que recibe o devuelve otra función", "Una función con muchos parámetros"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Scope",
+                    question: "¿Qué muestra este código?\n\nlet x = 10;\nfunction test() {\n  let x = 20;\n  console.log(x);\n}\ntest();\nconsole.log(x);",
+                    answers: ["10, 10", "20, 20", "20, 10", "10, 20"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Asincronía",
+                    question: "¿Para qué se usa 'async/await' en JavaScript?",
+                    answers: ["Para definir clases", "Para manejar código asíncrono", "Para importar módulos", "Para manejar errores"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Algoritmos",
+                    question: "¿Qué algoritmo de ordenamiento tiene complejidad O(n log n) en el caso promedio?",
+                    answers: ["Bubble Sort", "Quick Sort", "Insertion Sort", "Selection Sort"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Estructuras de Datos",
+                    question: "¿Qué estructura de datos sigue el principio LIFO?",
+                    answers: ["Cola (Queue)", "Pila (Stack)", "Lista enlazada", "Árbol binario"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Programación Orientada a Objetos",
+                    question: "¿Qué significa el término 'polimorfismo'?",
+                    answers: ["Capacidad de una clase para heredar de múltiples clases", "Ocultamiento de datos dentro de un objeto", "Capacidad de objetos de diferentes clases para responder al mismo mensaje", "Capacidad de definir múltiples constructores"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Recursividad",
+                    question: "¿Qué es la recursividad en programación?",
+                    answers: ["Un bucle infinito", "Una función que se llama a sí misma", "Un patrón de diseño", "Un error de compilación"],
+                    correctIndex: 1
+                },
+                {
+                    category: "REST API",
+                    question: "¿Qué método HTTP se usa típicamente para actualizar un recurso?",
+                    answers: ["GET", "POST", "PUT", "DELETE"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Promesas",
+                    question: "¿Qué estados puede tener una promesa en JavaScript?",
+                    answers: ["Active, Inactive", "Running, Stopped", "Pending, Fulfilled, Rejected", "Started, Finished, Failed"],
+                    correctIndex: 2
+                },
+                {
+                    category: "Frameworks",
+                    question: "¿Qué es un Virtual DOM?",
+                    answers: ["Una copia del DOM del navegador en memoria", "Un tipo de base de datos", "Un componente de HTML5", "Un servicio de alojamiento web"],
+                    correctIndex: 0
+                },
+                {
+                    category: "Python Avanzado",
+                    question: "¿Qué es un decorador en Python?",
+                    answers: ["Una clase abstracta", "Una función que modifica otra función", "Un tipo de bucle", "Un método especial de una clase"],
+                    correctIndex: 1
+                },
+                {
+                    category: "Closures",
+                    question: "¿Qué es un closure en JavaScript?",
+                    answers: ["Una función que cierra el programa", "Una variable que no se puede modificar", "Una función con acceso a variables de su ámbito externo", "Un método para cerrar conexiones"],
+                    correctIndex: 2
+                }
+            ]
+        };
+        
+        // Preguntas para el nivel actual y dificultad
+        let currentLevelQuestions = [];
+        
+        // Control de teclado
+        const keys = {};
+        
+        window.addEventListener('keydown', function(e) {
+            keys[e.key] = true;
+            
+            // Pausa el juego con la tecla P (no funciona cuando hay preguntas activas)
+            if ((e.key === 'p' || e.key === 'P') && !isQuestionActive) {
+                isPaused = !isPaused;
+                if (!isPaused) {
+                    gameLoop();
+                }
+            }
+        });
+        
+        window.addEventListener('keyup', function(e) {
+            keys[e.key] = false;
+        });
+
+        // Configuración de eventos para botones de respuesta
+        answerButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const answerIndex = parseInt(this.getAttribute('data-index'));
+                checkAnswer(answerIndex);
+            });
+        });
+        
+        // Configuración para selector de dificultad
+        difficultyBtns.forEach(button => {
+            button.addEventListener('click', function() {
+                difficulty = this.getAttribute('data-difficulty');
+                difficultySelector.style.display = 'none';
+                startGame();
+            });
+        });
+        
+        // Configuración para botón de siguiente nivel
+        nextLevelBtn.addEventListener('click', function() {
+            levelComplete.style.display = 'none';
+            currentLevel++;
+            if (currentLevel > maxLevel) {
+                // Has terminado todos los niveles, volver al inicio
+                currentLevel = 1;
+            }
+            loadLevel(currentLevel);
+        });
+        
+        // Funciones para el sistema de preguntas
+        function showQuestion(questionIndex) {
+            isQuestionActive = true;
+            isPaused = true;
+            
+            const question = currentLevelQuestions[questionIndex];
+            
+            // Mostrar categoría
+            document.querySelector('.question-category').textContent = `Categoría: ${question.category}`;
+            
+            // Formatear pregunta para mostrar código correctamente
+            let formattedQuestion = question.question.replace(/\n/g, '<br>');
+            questionText.innerHTML = formattedQuestion;
+            
+            // Configurar botones de respuesta
+            answerButtons.forEach((button, index) => {
+                button.textContent = question.answers[index];
+                button.classList.remove('correct', 'incorrect');
+                button.disabled = false;
+            });
+            
+            resultMessage.textContent = '';
+            resultMessage.className = '';
+            
+            // Resetear y comenzar temporizador
+            timerBar.style.width = '100%';
+            startTimer();
+            
+            // Mostrar modal
+            questionModal.style.display = 'block';
+        }
+        
+        function startTimer() {
+            timeLeft = timeLimits[difficulty];
+            clearInterval(questionTimer);
+            
+            questionTimer = setInterval(() => {
+                timeLeft--;
+                let percentage = (timeLeft / timeLimits[difficulty]) * 100;
+                timerBar.style.width = percentage + '%';
+                
+                // Cambiar color según el tiempo restante
+                if (percentage > 50) {
+                    timerBar.style.backgroundColor = '#4CAF50'; // Verde
+                } else if (percentage > 25) {
+                    timerBar.style.backgroundColor = '#FFC107'; // Amarillo
+                } else {
+                    timerBar.style.backgroundColor = '#FF5722'; // Naranja/Rojo
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(questionTimer);
+                    // Tiempo agotado, marcar como incorrecta
+                    timeOut();
+                }
+            }, 1000);
+        }
+        
+        function timeOut() {
+            clearInterval(questionTimer);
+            
+            // Deshabilitar los botones
+            answerButtons.forEach(button => {
+                button.disabled = true;
+            });
+            
+            // Marcar la respuesta correcta
+            const question = currentLevelQuestions[currentCoinIndex];
+            answerButtons[question.correctIndex].classList.add('correct');
+            
+            // Mostrar mensaje
+            resultMessage.textContent = '¡Tiempo agotado!';
+            resultMessage.className = 'incorrect';
+            
+            // Cerrar después de 2 segundos y reanudar el juego
+            setTimeout(() => {
+                closeQuestionModal();
+            }, 2000);
+        }
+        
+        function checkAnswer(selectedIndex) {
+            clearInterval(questionTimer);
+            const question = currentLevelQuestions[currentCoinIndex];
+            const isCorrect = selectedIndex === question.correctIndex;
+            
+            // Deshabilitar los botones después de responder
+            answerButtons.forEach(button => {
+                button.disabled = true;
+            });
+            
+            // Marcar la respuesta correcta e incorrecta
+            answerButtons[question.correctIndex].classList.add('correct');
+            if (!isCorrect) {
+                answerButtons[selectedIndex].classList.add('incorrect');
+            }
+            
+            // Mostrar resultado
+            if (isCorrect) {
+                resultMessage.textContent = '¡Correcto!';
+                resultMessage.className = 'correct';
+                coins[currentCoinIndex][3] = true; // Marcar pregunta como contestada correctamente
+                correctAnswers++;
+                
+            // Añadir puntos por respuesta correcta
+            let pointsEarned = 0;
+                switch(difficulty) {
+                    case "facil": pointsEarned = 10; break;
+                    case "medio": pointsEarned = 20; break;
+                    case "dificil": pointsEarned = 30; break;
+                }
+                score += pointsEarned;
+                updateScore();
+            } else {
+                resultMessage.textContent = '¡Incorrecto!';
+                resultMessage.className = 'incorrect';
+            }
+            
+            // Marcar la moneda como recolectada de todas formas
+            coins[currentCoinIndex][2] = true;
+            updateProgress();
+            
+            // Cerrar después de 2 segundos y reanudar el juego
+            setTimeout(() => {
+                closeQuestionModal();
+            }, 2000);
+        }
+        
+        function closeQuestionModal() {
+            questionModal.style.display = 'none';
+            isQuestionActive = false;
+            isPaused = false;
+            gameLoop();
+            
+            // Verificar si se han recogido todas las monedas
+            checkLevelComplete();
+        }
+        
+        function checkLevelComplete() {
+            // Verificar si todas las monedas han sido recolectadas
+            const allCoinsCollected = coins.every(coin => coin[2]);
+            
+            if (allCoinsCollected) {
+                // Mostrar pantalla de nivel completado
+                levelComplete.style.display = 'block';
+                isPaused = true;
+                
+                // Calcular puntuación del nivel y mostrarla
+                let levelScoreValue = score;
+                levelScore.textContent = levelScoreValue;
+                
+                // Mostrar estadísticas de preguntas
+                const totalQuestions = coins.length;
+                levelQuestions.textContent = `${correctAnswers}/${totalQuestions}`;
+            }
+        }
+        
+        // Funciones para cargar y gestionar niveles
+        function loadLevel(level) {
+            // Resetear variables para el nuevo nivel
+            player.x = 100;
+            player.y = 400;
+            player.velocityX = 0;
+            player.velocityY = 0;
+            player.isJumping = false;
+            
+            // Cargar plataformas, monedas y enemigos del nivel
+            platforms = [...levelPlatforms[level]];
+            coins = levelCoins[level].map(coin => [...coin]); // Crear copia para no modificar el original
+            enemies = levelEnemies[level].map(enemy => [...enemy]);
+            
+            // Actualizar visualizaciones
+            levelDisplay.textContent = `Nivel: ${level}`;
+            correctAnswers = 0;
+            updateProgress();
+            
+            // Seleccionar preguntas para este nivel según la dificultad
+            selectQuestionsForLevel();
+            
+            // Reiniciar el juego
+            isPaused = false;
+            gameLoop();
+        }
+        
+        function selectQuestionsForLevel() {
+            // Tomar preguntas aleatorias de la dificultad seleccionada
+            const availableQuestions = [...allQuestions[difficulty]];
+            currentLevelQuestions = [];
+            
+            // Necesitamos una pregunta por moneda
+            const numQuestionsNeeded = coins.length;
+            
+            // Si no hay suficientes preguntas, repetir algunas
+            while (currentLevelQuestions.length < numQuestionsNeeded) {
+                if (availableQuestions.length === 0) {
+                    // Si usamos todas las preguntas, reciclamos
+                    availableQuestions.push(...allQuestions[difficulty]);
+                }
+                
+                // Tomar una pregunta aleatoria
+                const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+                const selectedQuestion = availableQuestions.splice(randomIndex, 1)[0];
+                currentLevelQuestions.push(selectedQuestion);
+            }
+        }
+        
+        // Actualizar visualizaciones
+        function updateScore() {
+            scoreDisplay.textContent = `Puntos: ${score}`;
+        }
+        
+        function updateProgress() {
+            const totalCoins = coins.length;
+            const collectedCoins = coins.filter(coin => coin[2]).length;
+            progressDisplay.textContent = `Preguntas: ${collectedCoins}/${totalCoins}`;
+        }
+        
+        // Funciones para sprites y gráficos
+        function drawPlayer() {
+            // Color base para el jugador
+            ctx.fillStyle = '#007BFF';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // Cara simple
+            ctx.fillStyle = 'white';
+            ctx.fillRect(player.x + 8, player.y + 10, 4, 4); // Ojo izquierdo
+            ctx.fillRect(player.x + 20, player.y + 10, 4, 4); // Ojo derecho
+            
+            if (player.facingRight) {
+                ctx.fillRect(player.x + 16, player.y + 20, 8, 3); // Sonrisa
+            } else {
+                ctx.fillRect(player.x + 8, player.y + 20, 8, 3); // Sonrisa
+            }
+        }
+        
+        function drawPlatforms() {
+            platforms.forEach(platform => {
+                ctx.fillStyle = platform[4];
+                ctx.fillRect(platform[0], platform[1], platform[2], platform[3]);
+                
+                // Añadir textura simple a las plataformas
+                ctx.strokeStyle = '#5D4037';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(platform[0], platform[1] + 5);
+                ctx.lineTo(platform[0] + platform[2], platform[1] + 5);
+                ctx.stroke();
+            });
+        }
+        
+        function drawCoins() {
+            coins.forEach(coin => {
+                if (!coin[2]) { // Si la moneda no ha sido recolectada
+                    // Dibujar moneda
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(coin[0], coin[1], 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Brillo
+                    ctx.fillStyle = '#FFF9C4';
+                    ctx.beginPath();
+                    ctx.arc(coin[0] - 3, coin[1] - 3, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Símbolo $
+                    ctx.fillStyle = '#5D4037';
+                    ctx.font = '12px Arial';
+                    ctx.fillText('?', coin[0] - 4, coin[1] + 4);
+                }
+            });
+        }
+        
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                // Dibujar cuerpo del enemigo
+                ctx.fillStyle = '#FF5722';
+                ctx.fillRect(enemy[0], enemy[1], enemy[2], enemy[3]);
+                
+                // Ojos
+                ctx.fillStyle = 'white';
+                ctx.fillRect(enemy[0] + 5, enemy[1] + 5, 3, 3);
+                ctx.fillRect(enemy[0] + enemy[2] - 8, enemy[1] + 5, 3, 3);
+                
+                // Expresión enojada
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(enemy[0] + 8, enemy[1] + 12);
+                ctx.lineTo(enemy[0] + enemy[2] - 8, enemy[1] + 12);
+                ctx.stroke();
+            });
+        }
+        
+        // Funciones de colisión y física
+        function checkPlatformCollisions() {
+            let onPlatform = false;
+            
+            platforms.forEach(platform => {
+                // Verificar colisión con una plataforma
+                if (player.x + player.width > platform[0] && 
+                    player.x < platform[0] + platform[2] && 
+                    player.y + player.height > platform[1] && 
+                    player.y < platform[1] + platform[3]) {
+                    
+                    // Colisión por arriba (el jugador está encima de la plataforma)
+                    if (player.y + player.height < platform[1] + platform[3] / 2) {
+                        player.y = platform[1] - player.height;
+                        player.velocityY = 0;
+                        player.isJumping = false;
+                        onPlatform = true;
+                    }
+                    // Colisión por abajo (el jugador golpea la plataforma desde abajo)
+                    else if (player.y > platform[1] + platform[3] / 2) {
+                        player.y = platform[1] + platform[3];
+                        player.velocityY = 0;
+                    }
+                    // Colisión lateral
+                    else {
+                        if (player.x + player.width / 2 < platform[0] + platform[2] / 2) {
+                            player.x = platform[0] - player.width;
+                        } else {
+                            player.x = platform[0] + platform[2];
+                        }
+                        player.velocityX = 0;
+                    }
+                }
+            });
+            
+            // Si no está en una plataforma y no está saltando, aplicar gravedad
+            if (!onPlatform && player.velocityY === 0) {
+                player.isJumping = true;
+            }
+        }
+        
+        function checkCoinCollisions() {
+            coins.forEach((coin, index) => {
+                if (!coin[2]) { // Si la moneda no ha sido recolectada
+                    // Verificar colisión con el jugador
+                    const dx = coin[0] - (player.x + player.width / 2);
+                    const dy = coin[1] - (player.y + player.height / 2);
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 20) { // Radio del jugador + radio de la moneda
+                        // Mostrar pregunta
+                        currentCoinIndex = index;
+                        showQuestion(index);
+                    }
+                }
+            });
+        }
+        
+        function checkEnemyCollisions() {
+            if (gameOver) return;
+            
+            enemies.forEach(enemy => {
+                // Verificar colisión con el jugador
+                if (player.x + player.width > enemy[0] && 
+                    player.x < enemy[0] + enemy[2] && 
+                    player.y + player.height > enemy[1] && 
+                    player.y < enemy[1] + enemy[3]) {
+                    
+                    // Si el jugador cae encima del enemigo
+                    if (player.velocityY > 0 && player.y + player.height < enemy[1] + enemy[3] / 2) {
+                        // Eliminar enemigo (lo movemos fuera de la pantalla)
+                        enemy[0] = -100;
+                        enemy[1] = -100;
+                        
+                        // Rebote
+                        player.velocityY = -player.jumpForce / 2;
+                        
+                        // Puntos por eliminar enemigo
+                        score += 5;
+                        updateScore();
+                    } else {
+                        // Colisión lateral o por debajo, el jugador pierde
+                        gameOver = true;
+                        setTimeout(() => {
+                            alert('¡Game Over! Colisionaste con un enemigo.');
+                            resetGame();
+                        }, 100);
+                    }
+                }
+            });
+        }
+        
+        function checkBoundaries() {
+            // Limitar al jugador dentro del canvas
+            if (player.x < 0) {
+                player.x = 0;
+            }
+            if (player.x + player.width > canvas.width) {
+                player.x = canvas.width - player.width;
+            }
+            
+            // Si el jugador cae fuera del canvas, game over
+            if (player.y > canvas.height) {
+                gameOver = true;
+                setTimeout(() => {
+                    alert('¡Game Over! Te caíste del nivel.');
+                    resetGame();
+                }, 100);
+            }
+        }
+        
+        function moveEnemies() {
+            enemies.forEach(enemy => {
+                // Mover enemigo
+                enemy[0] += enemy[4] * enemy[5]; // velocidad * dirección
+                
+                // Cambiar dirección si llega a un borde
+                platforms.forEach(platform => {
+                    if (enemy[0] + enemy[2] > platform[0] + platform[2]) {
+                        enemy[5] = -1; // Ir a la izquierda
+                    } else if (enemy[0] < platform[0]) {
+                        enemy[5] = 1; // Ir a la derecha
+                    }
+                });
+            });
+        }
+        
+        // Función para resetear el juego
+        function resetGame() {
+            score = 0;
+            currentLevel = 1;
+            correctAnswers = 0;
+            gameOver = false;
+            
+            // Mostrar selector de dificultad nuevamente
+            difficultySelector.style.display = 'block';
+        }
+        
+        // Función principal de actualización
+        function update() {
+            if (isPaused || gameOver) return;
+            
+            // Movimiento horizontal
+            if (keys['ArrowLeft']) {
+                player.velocityX = -player.speed;
+                player.facingRight = false;
+            } else if (keys['ArrowRight']) {
+                player.velocityX = player.speed;
+                player.facingRight = true;
+            } else {
+                player.velocityX = 0;
+            }
+            
+            // Saltar
+            if (keys['ArrowUp'] && !player.isJumping) {
+                player.velocityY = -player.jumpForce;
+                player.isJumping = true;
+            }
+            
+            // Aplicar gravedad
+            player.velocityY += player.gravity;
+            
+            // Actualizar posición
+            player.x += player.velocityX;
+            player.y += player.velocityY;
+            
+            // Verificar colisiones
+            checkPlatformCollisions();
+            checkCoinCollisions();
+            checkEnemyCollisions();
+            checkBoundaries();
+            
+            // Mover enemigos
+            moveEnemies();
+            
+            // Animación del jugador
+            player.animationCounter++;
+            if (player.animationCounter >= player.animationSpeed) {
+                player.animationCounter = 0;
+                player.frameX = (player.frameX + 1) % player.frameCount;
+                
+                if (player.velocityX !== 0) {
+                    player.frameY = 1; // Animación de correr
+                } else {
+                    player.frameY = 0; // Animación de estar parado
+                }
+                
+                if (player.isJumping) {
+                    player.frameY = 2; // Animación de saltar
+                }
+            }
+        }
+        
+        // Función principal de dibujo
+        function draw() {
+            // Limpiar canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar cielo con gradiente
+            let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, "#87CEEB");
+            gradient.addColorStop(1, "#E0F7FA");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar elementos del juego
+            drawPlatforms();
+            drawCoins();
+            drawEnemies();
+            drawPlayer();
+        }
+        
+        // Bucle principal del juego
+        function gameLoop() {
+            if (isPaused) return;
+            
+            update();
+            draw();
+            
+            if (!gameOver) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        // Iniciar el juego
+        function startGame() {
+            // Inicializar variables
+            score = 0;
+            updateScore();
+            
+            loadLevel(currentLevel);
+        }
+        
+        // Iniciar el juego cuando todo esté cargado
+        window.onload = function() {
+            // No hacer nada aquí, esperamos a que el usuario seleccione la dificultad
+        };
+    </script>
+</body>
+</html>
